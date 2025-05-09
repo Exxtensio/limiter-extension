@@ -5,12 +5,12 @@ namespace Exxtensio\LimiterExtension;
 use Carbon\Carbon;
 use Closure;
 use Illuminate\Contracts\Cache\Repository as Cache;
-use Illuminate\Support\Facades\DB;
 use Psr\SimpleCache\InvalidArgumentException;
 
 class LimiterService
 {
     protected Cache $cache;
+    protected Carbon $expiredAt;
     protected string $userId;
     protected string $month;
     protected string $minute;
@@ -23,11 +23,12 @@ class LimiterService
     /**
      * @throws InvalidArgumentException
      */
-    public function for($id): LimiterService
+    public function for($id, Carbon $expiredAt): LimiterService
     {
         $this->userId = $this->cache->get($id);
         $this->month = "$this->userId:limits:month";
         $this->minute = "$this->userId:limits:minute";
+        $this->expiredAt = $expiredAt;
 
         return $this;
     }
@@ -35,18 +36,17 @@ class LimiterService
     public function create($minuteLimit, $monthLimit): LimiterService
     {
         $this->put($this->minute, $minuteLimit, now()->addMinute());
-        $this->put($this->month, $monthLimit, now()->addDays(30));
+        $this->put($this->month, $monthLimit, $this->expiredAt);
+        $this->cache->put("$this->month:expiredAt", $this->expiredAt);
 
         return $this;
     }
 
     public function reset($minuteLimit, $monthLimit): void
     {
-        DB::table('event_aggregation')->where('user_id', $this->userId)->delete();
-        DB::table('events')->where('user_id', $this->userId)->delete();
-
         $this->put($this->minute, $minuteLimit, now()->addMinute());
-        $this->put($this->month, $monthLimit, now()->addDays(30));
+        $this->put($this->month, $monthLimit, $this->expiredAt);
+        $this->cache->put("$this->month:expiredAt", $this->expiredAt);
     }
 
     /**
