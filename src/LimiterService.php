@@ -10,7 +10,7 @@ use Psr\SimpleCache\InvalidArgumentException;
 class LimiterService
 {
     protected Cache $cache;
-    protected Carbon $expiredAt;
+    protected ?Carbon $expiredAt = null;
     protected string $userId;
     protected string $month;
     protected string $minute;
@@ -23,7 +23,7 @@ class LimiterService
     /**
      * @throws InvalidArgumentException
      */
-    public function for($id, Carbon $expiredAt): LimiterService
+    public function for($id, ?Carbon $expiredAt = null): LimiterService
     {
         $this->userId = $this->cache->get($id);
         $this->month = "$this->userId:limits:month";
