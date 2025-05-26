@@ -42,6 +42,20 @@ class LimiterService
         return $this;
     }
 
+    /**
+     * @throws InvalidArgumentException
+     */
+    public function update($minuteLimit, $monthLimit): LimiterService
+    {
+        $this->cache->put($this->minute, $minuteLimit, now()->addMinute());
+        $this->cache->put("$this->minute:remaining", $minuteLimit, now()->addMinute());
+
+        $this->cache->put($this->month, $monthLimit, $this->expiredAt);
+        $this->cache->put("$this->month:remaining", $this->remaining('month', $monthLimit), $this->expiredAt);
+
+        return $this;
+    }
+
     public function reset($minuteLimit, $monthLimit): void
     {
         $this->put($this->minute, $minuteLimit, now()->addMinute());
