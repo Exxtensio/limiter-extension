@@ -50,8 +50,10 @@ class LimiterService
         $this->cache->put($this->minute, $minuteLimit, now()->addMinute());
         $this->cache->put("$this->minute:remaining", $minuteLimit, now()->addMinute());
 
+        $used = $this->cache->get("$this->month:used");
+
         $this->cache->put($this->month, $monthLimit, $this->expiredAt);
-        $this->cache->put("$this->month:remaining", $this->remaining('month', $monthLimit), $this->expiredAt);
+        $this->cache->put("$this->month:remaining", $monthLimit-$used, $this->expiredAt);
 
         return $this;
     }
