@@ -3,9 +3,9 @@
 namespace Exxtensio\LimiterExtension;
 
 use Carbon\Carbon;
-use Closure;
 use Illuminate\Contracts\Cache\Repository as Cache;
 use Psr\SimpleCache\InvalidArgumentException;
+use Closure;
 
 class LimiterService
 {
@@ -21,11 +21,13 @@ class LimiterService
     }
 
     /**
-     * @throws InvalidArgumentException
+     * @param $id
+     * @param Carbon|null $expiredAt
+     * @return $this
      */
     public function for($id, ?Carbon $expiredAt = null): LimiterService
     {
-        $this->userId = $this->cache->get($id);
+        $this->userId = $id;
         $this->month = "$this->userId:limits:month";
         $this->minute = "$this->userId:limits:minute";
         $this->expiredAt = $expiredAt;
